@@ -23,7 +23,7 @@ def hello(event, context):
         if "start" in message:
             response = "Hello {}".format(first_name)
         else:
-            response = event
+            response = str(event)
 
         data = {"text": response.encode("utf8"), "chat_id": chat_id}
         url = baseURL + "/sendMessage"
