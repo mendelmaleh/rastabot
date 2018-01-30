@@ -22,8 +22,14 @@ def hello(event, context):
 
         if "start" in message:
             response = "Hello {}".format(first_name)
-        else:
+        elif "event" in message:
             response = str(event)
+        elif "data" in message:
+            response = str(data)
+        elif "/event" in message:
+            response = "--forward slash\n\n" + str(event)
+        elif "/data" in message:
+            response = "--forward slash\n\n" + str(data)
 
         data = {"text": response.encode("utf8"), "chat_id": chat_id}
         url = baseURL + "/sendMessage"
