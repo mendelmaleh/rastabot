@@ -6,9 +6,27 @@ here = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(here, "./vendored"))
 
 import requests
+import ast
 
 token = "516160274:AAEgyfeASRRdb0_XFDxtAOTtxQsjJjkt1bo"
 baseURL = "https://api.telegram.org/bot{}".format(token)
+admins = [425478612]
+words = ["start"]
+
+
+def isList(uid, aList):
+    if uid in aList:
+        return True
+    else:
+        return False
+
+
+def canEval(i):
+    try:
+        ast.literal_eval(i)
+        return True
+    except (NameError, ValueError):
+        return False
 
 
 def hello(event, context):
@@ -18,18 +36,21 @@ def hello(event, context):
         chat_id = data["message"]["chat"]["id"]
         first_name = data["message"]["chat"]["first_name"]
 
+        ans = {"/start": ("Hello {}".format(first_name))}
+        admin = isList(chat_id, admins)
         response = "Please /start, {}".format(first_name)
 
-        if "start" in message:
-            response = "Hello {}".format(first_name)
-        elif "event" in message:
-            response = str(event)
-        elif "data" in message:
-            response = str(data)
-        elif "/event" in message:
-            response = "--forward slash\n\n" + str(event)
-        elif "/data" in message:
-            response = "--forward slash\n\n" + str(data)
+        if message in ans:
+            response = str(ans[message])
+
+        elif admin is True & canEval(message) is True:
+            response = str(ast.literal_(message))
+
+        elif admin is True & canEval(message) is False:
+            response = "{} is not a word".format(message)
+
+        elif admin is False:
+            response = "Use /help"
 
         data = {"text": response.encode("utf8"), "chat_id": chat_id}
         url = baseURL + "/sendMessage"
