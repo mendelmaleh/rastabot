@@ -10,7 +10,7 @@ import requests
 token = os.environ['TELEGRAM_TOKEN']
 baseURL = "https://api.telegram.org/bot{}".format(token)
 admins = [425478612]
-
+ver = "1.0.0.6"
 
 # def unloader(event):
 #     data = json.loads(event["body"])
@@ -32,7 +32,7 @@ def stamptohuman(t):
     s = t % 60
     m = ((t - s) / 60) % 60
     h = ((t - ((m * 60) + s)) / 3600) % 24
-    return [h, m, s]
+    return [int(h), int(m), int(s)]
 
 
 def encoder(ans, chat_id, base_url):
@@ -54,8 +54,7 @@ def hello(event, context):
         except:
             username = firstname
 
-        saved = {"/start": "Hi {}".format(username), "time": time, "data": str(data)}
-        #"{}:{}, {} {} {} {}"
+        saved = {"ver": ver, "/start": "Hi {}".format(username), "time": "{}:{}:{}".format(time[0], time[1], time[2]), "data": str(data)}
 
         answer = "{}, I'm not sure what you want...".format(username)
 
@@ -63,6 +62,10 @@ def hello(event, context):
 
         if message in saved:
             answer = saved[message]
+        elif message[0].isupper():
+            lowermsg = message.lower()
+            if lowermsg in saved:
+                answer = saved[lowermsg]
 
         encoder(answer, chatID, baseURL)
 
