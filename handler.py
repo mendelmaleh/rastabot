@@ -1,60 +1,70 @@
-import json
 import os
+import json
 import sys
 
 here = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(here, "./vendored"))
 
 import requests
-import ast
 
-token = "516160274:AAEgyfeASRRdb0_XFDxtAOTtxQsjJjkt1bo"
+token = os.environ['TELEGRAM_TOKEN']
 baseURL = "https://api.telegram.org/bot{}".format(token)
 admins = [425478612]
-words = ["start"]
 
 
-def isList(uid, aList):
-    if uid in aList:
-        return True
-    else:
-        return False
+# def unloader(event):
+#     data = json.loads(event["body"])
+#     message = str(data["message"]["text"])
+#     chatID = data["message"]["chat"]["id"]
+#     username = data["message"]["chat"]["username"]
+#     firstname = data["message"]["chat"]["first_name"]
+#     answer = "@{}, I'm not sure what you did...".format(username)
+#     return data, chatID, username, firstname, answer
 
 
-def canEval(i):
-    try:
-        ast.literal_eval(i)
-        return True
-    except (NameError, ValueError):
-        return False
+# def isList(i, l):
+#     if i in l:
+#         return True
+#     else:
+#         return False
+
+def stamptohuman(t):
+    s = t % 60
+    m = ((t - s) / 60) % 60
+    h = ((t - ((m * 60) + s)) / 3600) % 24
+    return [h, m, s]
+
+
+def encoder(ans, chat_id, base_url):
+    data = {"text": ans.encode("utf8"), "chat_id": chat_id}
+    url = base_url + "/sendMessage"
+    requests.post(url, data)
 
 
 def hello(event, context):
     try:
         data = json.loads(event["body"])
         message = str(data["message"]["text"])
-        chat_id = data["message"]["chat"]["id"]
-        first_name = data["message"]["chat"]["first_name"]
+        chatID = data["message"]["chat"]["id"]
+        firstname = data["message"]["chat"]["first_name"]
+        time = stamptohuman(data["message"]["date"])
 
-        ans = {"/start": ("Hello {}".format(first_name))}
-        admin = isList(chat_id, admins)
-        response = "Please /start, {}".format(first_name)
+        try:
+            username = "@" + data["message"]["chat"]["username"]
+        except:
+            username = firstname
 
-        if message in ans:
-            response = str(ans[message])
+        saved = {"/start": "Hi {}".format(username), "time": time, "data": str(data)}
+        #"{}:{}, {} {} {} {}"
 
-        elif admin is True & canEval(message) is True:
-            response = str(ast.literal_(message))
+        answer = "{}, I'm not sure what you want...".format(username)
 
-        elif admin is True & canEval(message) is False:
-            response = "{} is not a word".format(message)
+        # admin = islist(chatID, admins)
 
-        elif admin is False:
-            response = "Use /help"
+        if message in saved:
+            answer = saved[message]
 
-        data = {"text": response.encode("utf8"), "chat_id": chat_id}
-        url = baseURL + "/sendMessage"
-        requests.post(url, data)
+        encoder(answer, chatID, baseURL)
 
     except Exception as e:
         print(e)
